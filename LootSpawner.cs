@@ -1,6 +1,6 @@
-// 3. LootSpawner.cs
+//3. LootSpawner.cs
+using System.Collections.Generic;
 using UnityEngine;
-
 
 /// Attach this to an Enemy, Chest, or destructible barrel.
 
@@ -23,22 +23,25 @@ public class LootSpawner : MonoBehaviour
             return;
         }
 
-        // Ask the ScriptableObject to do the math and give us a winner
-        GameObject winningItem = myLootTable.GetRandomDrop();
+        // Ask the ScriptableObject to process the math and give us all winning items
+        List<GameObject> itemsToSpawn = myLootTable.GenerateDrops();
 
-        if (winningItem != null)
+        if (itemsToSpawn.Count > 0)
         {
             Vector3 spawnPos = spawnPoint != null ? spawnPoint.position : transform.position;
             
-            // Spawn the physical item
-            GameObject spawnedLoot = Instantiate(winningItem, spawnPos, Quaternion.identity);
-
-            // Optional: Add a little physics "pop" so the loot flies out
-            Rigidbody rb = spawnedLoot.GetComponent<Rigidbody>();
-            if (rb != null)
+            // Loop through our list and spawn every item (Guaranteed + Weighted)
+            foreach (GameObject itemPrefab in itemsToSpawn)
             {
-                Vector3 randomDirection = new Vector3(Random.Range(-1f, 1f), 1f, Random.Range(-1f, 1f)).normalized;
-                rb.AddForce(randomDirection * dropForce, ForceMode.Impulse);
+                GameObject spawnedLoot = Instantiate(itemPrefab, spawnPos, Quaternion.identity);
+
+                // Optional: Add a little physics "pop" so the loot flies out
+                Rigidbody rb = spawnedLoot.GetComponent<Rigidbody>();
+                if (rb != null)
+                {
+                    Vector3 randomDirection = new Vector3(Random.Range(-1f, 1f), 1f, Random.Range(-1f, 1f)).normalized;
+                    rb.AddForce(randomDirection * dropForce, ForceMode.Impulse);
+                }
             }
         }
         else
