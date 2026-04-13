@@ -1,22 +1,51 @@
-// 2. LootTable.cs
 using System.Collections.Generic;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "NewLootTable", menuName = "Loot System/Loot Table")]
 public class LootTable : ScriptableObject
 {
-    [Header("Loot Configuration")]
+    [Header("Guaranteed Drops")]
+    [Tooltip("Items in this list will ALWAYS drop when this table is rolled, ignoring any weights.")]
+    public List<GameObject> guaranteedDrops = new List<GameObject>();
+
+    [Header("Weighted Loot Configuration")]
     public List<LootItem> possibleDrops = new List<LootItem>();
 
-    [Tooltip("If checked, there is a chance the enemy drops absolutely nothing.")]
+    [Tooltip("If checked, there is a chance the enemy drops absolutely nothing from the weighted list.")]
     public bool canDropEmpty = false;
     [Tooltip("The weight of dropping nothing. Only applies if canDropEmpty is true.")]
     public int emptyDropWeight = 50;
 
-  
-    /// Calculates the total weight and returns a random item based on their individual weights.
-  
-    public GameObject GetRandomDrop()
+    
+    /// Returns a list of all items that should spawn (All Guaranteed Items + 1 Weighted Item).
+    
+    public List<GameObject> GenerateDrops()
+    {
+        List<GameObject> finalDrops = new List<GameObject>();
+
+        // 1. Add all guaranteed drops to our final spawn list
+        foreach (GameObject guaranteedItem in guaranteedDrops)
+        {
+            if (guaranteedItem != null)
+            {
+                finalDrops.Add(guaranteedItem);
+            }
+        }
+
+        // 2. Calculate the random weighted drop and add it to the list
+        GameObject weightedDrop = GetRandomDrop();
+        if (weightedDrop != null)
+        {
+            finalDrops.Add(weightedDrop);
+        }
+
+        return finalDrops;
+    }
+
+    
+    /// Calculates the total weight and returns a single random item based on their individual weights.
+    
+    private GameObject GetRandomDrop()
     {
         if (possibleDrops.Count == 0) return null;
 
